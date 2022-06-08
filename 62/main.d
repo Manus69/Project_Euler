@@ -7,6 +7,7 @@ import std.math;
 import std.exception;
 import std.algorithm;
 import std.array;
+import std.parallelism;
 
 import number;
 
