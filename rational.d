@@ -59,13 +59,12 @@ class Rational(T)
 
     Rational invert()
     {   
-        T t;
+        return new Rational(_bot, _top);
+    }
 
-        t = _top;
-        _top = _bot;
-        _bot = t;
-
-        return this;
+    Rational scale(T value)
+    {
+        return new Rational(_top * value, _bot);
     }
 
     double value() const @property

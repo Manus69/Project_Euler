@@ -28,22 +28,6 @@ ulong[] generate_sequence(ulong length)
     return sequence;
 }
 
-Rational!BigInt sequence_to_rational(const ulong[] sequence)
-{
-    Rational!BigInt lhs;
-    Rational!BigInt rhs;
-
-    enforce(sequence.length);
-
-    if (sequence.length == 1)
-        return new Rational!BigInt(BigInt(sequence[0]), BigInt(1));
-    
-    lhs = new Rational!BigInt(BigInt(sequence[0]), BigInt(1));
-    rhs = sequence_to_rational(sequence[1 .. $]).invert();
-
-    return lhs + rhs;
-}
-
 ulong sum_digits(const string number_string)
 {
     return number_string.fold!((a, b) => a + b)(0) - number_string.length * '0';
@@ -55,7 +39,7 @@ void main()
     Rational!BigInt result;
     string          str;
     
-    sequence = generate_sequence(100);
+    sequence = generate_sequence(10);
     // writeln(seq);
 
     result = sequence_to_rational(sequence);
