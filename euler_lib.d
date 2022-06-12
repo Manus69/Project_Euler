@@ -8,6 +8,7 @@ import std.stdio;
 import std.format;
 import std.container;
 import std.parallelism;
+import std.array;
 
 import rational;
 
