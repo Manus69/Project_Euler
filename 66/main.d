@@ -30,8 +30,9 @@ Rational!BigInt solve(ulong D)
     ulong           n;
 
     sequence = number_to_canonical_sequence(D, LIMIT);
+    // writeln(sequence);
     n = 1;
-    while (n < LIMIT)
+    while (n < sequence.length)
     {
         r = sequence_to_rational!BigInt(sequence[0 .. n], 1);
 
@@ -47,7 +48,7 @@ Rational!BigInt solve(ulong D)
 Rational!BigInt[] solve_all(ulong limit)
 {
     Rational!BigInt[]   solutions;
-    ulong[] values;
+    ulong[]             values;
 
     values = iota(2, limit).array;
     foreach (D; values)
@@ -68,8 +69,8 @@ Rational!BigInt[] solve_all(ulong limit)
 ulong find_max_index(Rational!BigInt[] values)
 {
     Rational!BigInt max;
-    ulong index_max;
-    ulong n;
+    ulong           index_max;
+    ulong           n;
 
     max = values[0];
     index_max = 0;
@@ -90,8 +91,8 @@ ulong find_max_index(Rational!BigInt[] values)
 
 void main()
 {
-    Rational!BigInt[] solutions;
-    ulong index;
+    Rational!BigInt[]   solutions;
+    ulong               index;
 
     solutions = solve_all(1000);
 
