@@ -198,20 +198,30 @@ T[][] get_all_choices(T)(const T[] array, ulong n_items)
     return get_all_choices!T(set, n_items);
 }
 
-void rotate_array(T)(T[] array, ulong amount)
+T[] rotate_array(T)(T[] array, ulong amount)
 {
-    ulong n;
-    ulong next_index;
+    T[] copy;
 
-    if (array.length == 1)
-        return ;
-    
     amount = amount % array.length;
-    while (n < array.length)
-    {
-        next_index = (n + amount) % array.length;
-        swap(array, n, next_index);
 
-        ++ n;
-    }
+    if (!amount || array.length < 2)
+        return array.dup;
+
+    copy = array[$ - amount .. $] ~ array[0 .. $ - amount];
+
+    return copy;  
+}
+
+ulong[] get_primes(ulong max)
+{
+    bool[] sieve;
+    ulong n;
+
+    sieve.length = max + 1;
+    sieve[0 .. 1] = false;
+    n = 2;
+
+
+
+    return null;
 }
