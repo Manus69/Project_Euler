@@ -9,11 +9,6 @@ import std.algorithm;
 
 import euler_lib;
 
-ulong count_nodes(ulong n_sides)
-{
-    return 2 * n_sides;
-}
-
 class MagicNGon2(ulong N)
 {
     int[] _values;

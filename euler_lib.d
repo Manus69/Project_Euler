@@ -9,8 +9,13 @@ import std.format;
 import std.container;
 import std.parallelism;
 import std.array;
+import std.algorithm;
+import std.math;
 
 import rational;
+
+private bool[] SIEVE = null;
+private ulong[] PRIMES = null;
 
 T abs(T)(T value)
 {
@@ -212,16 +217,91 @@ T[] rotate_array(T)(T[] array, ulong amount)
     return copy;  
 }
 
-ulong[] get_primes(ulong max)
+private long _get_next_prime(bool[] sieve, long n)
 {
-    bool[] sieve;
-    ulong n;
+    ++ n;
+    while (n < sieve.length && sieve[n] == false)
+        ++ n;
+
+    return n == sieve.length ? -1 : n;
+}
+
+bool[] get_sieve(ulong max)
+{
+    bool[]  sieve;
+    long    n;
+    long    index;
+
+    if (SIEVE && SIEVE.length > max)
+        return SIEVE;
 
     sieve.length = max + 1;
+    sieve[] = true;
     sieve[0 .. 1] = false;
     n = 2;
+    index = 4;
 
+    while (n > 0)
+    {
+        while (index < max)
+        {
+            sieve[index] = false;
+            index += n;
+        }
 
+        n = _get_next_prime(sieve, n);
+        index = n + n;
+    }
 
-    return null;
+    SIEVE = sieve;
+
+    return sieve;
+}
+
+ulong[] get_primes(ulong limit)
+{
+    ulong   n;
+    ulong[] primes;
+
+    if (PRIMES && PRIMES[$ - 1] >= limit)
+    {
+        return PRIMES[0 .. countUntil!"a >= b"(PRIMES, limit)];
+    }
+
+    if (!SIEVE || SIEVE.length < limit)
+        SIEVE = get_sieve(limit);
+
+    n = 2;
+    while (n < limit)
+    {
+        if (SIEVE[n])
+            primes ~= n;
+
+        ++ n;
+    }
+
+    PRIMES = primes;
+
+    return primes;
+}
+
+ulong[] get_divisors(ulong n)
+{
+    ulong[] primes;
+    ulong[] divisors;
+
+    primes = get_primes(n);
+    foreach (p; primes)
+    {
+        if (n == 0)
+            return divisors;
+        
+        while (n % p == 0)
+        {
+            divisors ~= p;
+            n /= p;
+        }
+    }
+
+    return divisors;
 }
