@@ -11,11 +11,82 @@ import std.parallelism;
 import std.array;
 import std.algorithm;
 import std.math;
-
-import rational;
+import std.typecons;
 
 private bool[] SIEVE = null;
 private ulong[] PRIMES = null;
+
+class Rational(T)
+{
+    T _top;
+    T _bot;
+
+    this(T top, T bot)
+    {
+        T d;
+
+        enforce(bot != 0);
+        if (bot < 0)
+        {
+            top = -top;
+            bot = -bot;
+        }
+
+        d = gcdT!T(top, bot);
+        _top = top / d;
+        _bot = bot / d;
+    }
+
+    private Rational _add(const Rational rhs)
+    {
+        T _lcm;
+
+        _lcm = lcmT(_bot, rhs._bot);
+
+        return new Rational((_lcm / _bot) * _top + (_lcm / rhs._bot) * rhs._top, _lcm); 
+    }
+
+    private Rational _mult(const Rational rhs)
+    {
+        return new Rational(_top * rhs._top, _bot * rhs._bot);
+    }
+
+    private Rational _div(const Rational rhs)
+    {
+        return new Rational(_top * rhs._bot, _bot * rhs._top);
+    }
+
+    Rational opBinary(string op)(const Rational rhs)
+    {
+        static if (op == "+")
+            return this._add(rhs);
+        else static if (op == "*")
+            return this._mult(rhs);
+        else static if (op == "/")
+            return this._div(rhs);
+        else static assert (0);
+    }
+
+    Rational invert()
+    {   
+        return new Rational(_bot, _top);
+    }
+
+    Rational scale(T value)
+    {
+        return new Rational(_top * value, _bot);
+    }
+
+    double value() const @property
+    {
+        return to!double(_top) / to!double(_bot);
+    }
+
+    override string toString() const
+    {
+        return format("%s / %s", _top, _bot);
+    }
+}
 
 T abs(T)(T value)
 {
@@ -217,7 +288,7 @@ T[] rotate_array(T)(T[] array, ulong amount)
     return copy;  
 }
 
-private long _get_next_prime(bool[] sieve, long n)
+long get_next_prime(const bool[] sieve, long n) pure
 {
     ++ n;
     while (n < sieve.length && sieve[n] == false)
@@ -235,7 +306,8 @@ bool[] get_sieve(ulong max)
     if (SIEVE && SIEVE.length > max)
         return SIEVE;
 
-    sieve.length = max + 1;
+    ++ max;
+    sieve.length = max;
     sieve[] = true;
     sieve[0 .. 1] = false;
     n = 2;
@@ -249,7 +321,7 @@ bool[] get_sieve(ulong max)
             index += n;
         }
 
-        n = _get_next_prime(sieve, n);
+        n = get_next_prime(sieve, n);
         index = n + n;
     }
 
@@ -263,16 +335,16 @@ ulong[] get_primes(ulong limit)
     ulong   n;
     ulong[] primes;
 
-    if (PRIMES && PRIMES[$ - 1] >= limit)
+    if (PRIMES && PRIMES[$ - 1] > limit)
     {
         return PRIMES[0 .. countUntil!"a >= b"(PRIMES, limit)];
     }
 
-    if (!SIEVE || SIEVE.length < limit)
+    if (!SIEVE || SIEVE.length <= limit)
         SIEVE = get_sieve(limit);
 
     n = 2;
-    while (n < limit)
+    while (n <= limit)
     {
         if (SIEVE[n])
             primes ~= n;
@@ -291,6 +363,9 @@ ulong[] get_divisors(ulong n)
     ulong[] divisors;
 
     primes = get_primes(n);
+    if (SIEVE[n])
+        return [];
+    
     foreach (p; primes)
     {
         if (n == 0)
@@ -304,4 +379,34 @@ ulong[] get_divisors(ulong n)
     }
 
     return divisors;
+}
+
+Tuple!(ulong, ulong)[] get_divisors_powers(ulong n)
+{
+    ulong[] divisors;
+    Tuple!(ulong, ulong)[] result;
+    Tuple!(ulong, ulong) current;
+    ulong p;
+
+    divisors = get_divisors(n);
+    if (divisors.length == 0)
+        return null;
+    
+    current = Tuple!(ulong, ulong)(divisors[0], 1);
+    foreach (d; divisors[1 .. $])
+    {
+        if (d == current[0])
+        {
+            ++ current[1];
+        }
+        else
+        {
+            result ~= current;
+            current = Tuple!(ulong, ulong)(d, 1);
+        }
+    }
+
+    result ~= current;
+
+    return result;
 }
