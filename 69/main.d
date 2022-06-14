@@ -60,7 +60,7 @@ ulong compute_value(ulong n, const bool[] sieve)
 
 void compute_totient_values2(const bool[] sieve)
 {
-    foreach (n; iota(2, N + 1))
+    foreach (n; 2 .. N + 1)
     {
         compute_value(n, sieve);
     }
@@ -94,6 +94,8 @@ void main()
     TOTIENT_VALUES[1] = 1;
     sieve = get_sieve(N);
     compute_totient_values2(sieve);
+
+    // writeln(TOTIENT_VALUES[0 .. $]);
 
     index = find_index();
     writeln(index);

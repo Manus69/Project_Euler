@@ -383,10 +383,9 @@ ulong[] get_divisors(ulong n)
 
 Tuple!(ulong, ulong)[] get_divisors_powers(ulong n)
 {
-    ulong[] divisors;
-    Tuple!(ulong, ulong)[] result;
-    Tuple!(ulong, ulong) current;
-    ulong p;
+    ulong[]                 divisors;
+    Tuple!(ulong, ulong)[]  result;
+    Tuple!(ulong, ulong)    current;
 
     divisors = get_divisors(n);
     if (divisors.length == 0)
@@ -409,4 +408,64 @@ Tuple!(ulong, ulong)[] get_divisors_powers(ulong n)
     result ~= current;
 
     return result;
+}
+
+ulong get_divisor(ulong n)
+{
+    ulong p;
+
+    p = 2;
+    while (p <= n)
+    {
+        if (n % p == 0)
+            return p;
+        ++ p;
+    }
+
+    return p;
+}
+
+private ulong _compute_value(ulong n, ulong[] phi)
+{
+    ulong divisor;
+    ulong gcd_value;
+    ulong result;
+
+    if (phi[n])
+        return phi[n];
+    
+    if (SIEVE[n])
+    {
+        phi[n] = n - 1;
+
+        return phi[n];
+    }
+
+    divisor = get_divisor(n);
+    gcd_value = gcd(divisor, n / divisor);
+
+    result = (_compute_value(divisor, phi) * _compute_value(n / divisor, phi)) * gcd_value;
+    result /= _compute_value(gcd_value, phi);
+
+    phi[n] = result;
+
+    return result;
+}
+
+ulong[] get_phi_values(ulong limit)
+{
+    ulong[] phi_values;
+
+    if (!SIEVE || SIEVE.length <= limit)
+        SIEVE = get_sieve(limit);
+
+    phi_values.length = limit;
+    phi_values[1] = 1;
+    
+    foreach (n; 2 .. limit)
+    {
+        phi_values[n] = _compute_value(n, phi_values);
+    }
+
+    return phi_values;
 }
