@@ -37,7 +37,7 @@ class Rational(T)
         _bot = bot / d;
     }
 
-    private Rational _add(const Rational rhs)
+    private Rational _add(const Rational rhs) const
     {
         T _lcm;
 
@@ -46,17 +46,17 @@ class Rational(T)
         return new Rational((_lcm / _bot) * _top + (_lcm / rhs._bot) * rhs._top, _lcm); 
     }
 
-    private Rational _mult(const Rational rhs)
+    private Rational _mult(const Rational rhs) const
     {
         return new Rational(_top * rhs._top, _bot * rhs._bot);
     }
 
-    private Rational _div(const Rational rhs)
+    private Rational _div(const Rational rhs) const
     {
         return new Rational(_top * rhs._bot, _bot * rhs._top);
     }
 
-    Rational opBinary(string op)(const Rational rhs)
+    Rational opBinary(string op)(const Rational rhs) const
     {
         static if (op == "+")
             return this._add(rhs);
@@ -67,17 +67,35 @@ class Rational(T)
         else static assert (0);
     }
 
-    Rational invert()
+    private T _common_denom(const Rational rhs) const pure
+    {
+        return lcmT!T(_bot, rhs._bot);   
+    }
+
+    int opCmp(const Rational rhs) const
+    {
+        T left;
+        T right;
+        T denom;
+
+        denom = _common_denom(rhs);
+        left = (denom / _bot) * _top;
+        right = (denom / rhs._bot) * rhs._top;
+
+        return left < right ? -1 : left > right;
+    }
+
+    Rational invert() const
     {   
         return new Rational(_bot, _top);
     }
 
-    Rational scale(T value)
+    Rational scale(T value) const
     {
         return new Rational(_top * value, _bot);
     }
 
-    double value() const @property
+    double value() const pure @property
     {
         return to!double(_top) / to!double(_bot);
     }
@@ -461,7 +479,7 @@ ulong[] get_phi_values(ulong limit)
 
     phi_values.length = limit;
     phi_values[1] = 1;
-    
+
     foreach (n; 2 .. limit)
     {
         phi_values[n] = _compute_value(n, phi_values);
