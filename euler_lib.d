@@ -154,6 +154,19 @@ T lcmT(T)(T a, T b)
     return (a * b) / gcdT(a, b);
 }
 
+ulong factorial(ulong n)
+{
+    ulong product;
+
+    product = 1;
+    foreach (v; 1 .. n + 1)
+    {
+        product *= v;
+    }
+
+    return product;
+}
+
 Rational!T sequence_to_rational(T)(const ulong[] sequence, ulong R)
 {
     Rational!T                  lhs;
