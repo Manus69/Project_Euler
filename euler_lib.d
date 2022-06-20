@@ -32,7 +32,7 @@ class Rational(T)
             bot = -bot;
         }
 
-        d = gcdT!T(top, bot);
+        d = gcdT!T(abs!T(top), abs!T(bot));
         _top = top / d;
         _bot = bot / d;
     }
@@ -44,6 +44,15 @@ class Rational(T)
         _lcm = lcmT(_bot, rhs._bot);
 
         return new Rational((_lcm / _bot) * _top + (_lcm / rhs._bot) * rhs._top, _lcm); 
+    }
+
+    private Rational _subt(const Rational rhs) const
+    {
+        Rational _rhs;
+
+        _rhs = rhs.scale(T(-1));
+
+        return this._add(_rhs);
     }
 
     private Rational _mult(const Rational rhs) const
@@ -64,6 +73,8 @@ class Rational(T)
             return this._mult(rhs);
         else static if (op == "/")
             return this._div(rhs);
+        else static if (op == "-")
+            return this._subt(rhs);
         else static assert (0);
     }
 
@@ -256,6 +267,25 @@ Rational!T root_to_fraction(T)(ulong x, ulong n_terms)
     sequence = number_to_canonical_sequence(x, n_terms);
 
     return sequence_to_rational!T(sequence, 1);
+}
+
+string divide(T)(T top, T bot, ulong n_digits)
+{
+    T div;
+
+    if (n_digits == 0)
+        return "";
+    
+    div = top / bot;
+
+    if (div == 0)
+    {
+        return "0" ~ divide(top * 10, bot, n_digits - 1);
+    }
+    else
+    {
+        return to!string(div) ~ divide((top - div * bot) * 10, bot, n_digits - 1);
+    }
 }
 
 private T[][] _combine(T)(T[][] array, T value)
@@ -499,4 +529,13 @@ ulong[] get_phi_values(ulong limit)
     }
 
     return phi_values;
+}
+
+bool is_perfect_square(ulong x)
+{
+    ulong root;
+
+    root = to!ulong(sqrt(to!real(x)));
+
+    return root * root == x; 
 }
