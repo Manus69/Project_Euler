@@ -12,6 +12,7 @@ import std.array;
 import std.algorithm;
 import std.math;
 import std.typecons;
+import std.file;
 
 private bool[] SIEVE = null;
 private ulong[] PRIMES = null;
@@ -117,7 +118,16 @@ class Rational(T)
     }
 }
 
-T abs(T)(T value)
+string[] read_file_by_line(const string file_name)
+{
+    string content;
+
+    content = readText(file_name);
+
+    return content.split();
+}
+
+T abs(T)(T value) pure nothrow
 {
     return value < 0 ? -value : value;
 }

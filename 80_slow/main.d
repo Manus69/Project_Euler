@@ -5,6 +5,8 @@ import std.bigint;
 import std.range;
 import std.conv;
 import std.algorithm;
+import std.parallelism;
+import std.range;
 
 import euler_lib;
 
@@ -38,7 +40,7 @@ void main()
 
         fraction = root_to_fraction!BigInt(n, 180);
         current = divide!BigInt(fraction._top, fraction._bot, 100);
-
+    
         total += sum_digits(current);
     }
 
