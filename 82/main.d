@@ -8,6 +8,7 @@ import std.string;
 import std.algorithm;
 import std.container;
 import std.typecons;
+import std.parallelism;
 
 import euler_lib;
 
@@ -88,7 +89,12 @@ class Node
         if (this.distance == _rhs.distance)
         {
             if (this.value == _rhs.value)
-                return &_rhs != cast(Node *)this;
+            {
+                if (this.col == _rhs.col)
+                    return &_rhs != cast(Node *)this;
+                
+                return this.col < _rhs.col ? -1 : this.col > _rhs.col;
+            }
             
             return this.value < _rhs.value ? -1 : this.value > _rhs.value;
         }
@@ -105,14 +111,18 @@ class Node
 
     override string toString() const
     {
-        return format("%s", value);
+        return format("(%s %s)", value, distance);
     }
 }
 
 class Solver(ulong N)
 {
     Node[N][N] nodes;
-    RedBlackTree!Node queue;
+    // Node[]      _queue;
+    // BinaryHeap!(Node[], "a > b")* queue;
+    BinaryHeap!(Node[], "a > b")* queue;
+
+    // Node[] queue;
 
     this(const Matrix!N matrix)
     {
@@ -124,7 +134,7 @@ class Solver(ulong N)
             }
         }
 
-        queue = new RedBlackTree!Node();
+        queue = new BinaryHeap!(Node[], "a > b")(cast(Node[])[]);
     }
     
     private void _clear()
@@ -137,7 +147,7 @@ class Solver(ulong N)
             }
         }
 
-        queue = new RedBlackTree!Node();
+        // queue = new RedBlackTree!Node();
     }
 
     private bool _last_node(const Node node) const pure
@@ -154,6 +164,7 @@ class Solver(ulong N)
         nodes[row][col].distance = previous ?
                     previous.distance + nodes[row][col].value : nodes[row][col].value;
         queue.insert(nodes[row][col]);
+        // queue ~= nodes[row][col];
     }
 
     private void _queue_nodes(Node node)
@@ -186,25 +197,57 @@ class Solver(ulong N)
         return false;
     }
 
-    ulong[] find_path(ulong row, ulong col)
+    private void _visit_starting_nodes()
+    {
+        foreach (n; 0 .. N)
+        {
+            nodes[n][0].distance = nodes[n][0].value;
+            _visit(nodes[n][0]);
+
+        }
+        // writeln(queue);
+    }
+
+    // ulong[] find_path(ulong row, ulong col)
+    // {
+    //     Node current;
+
+    //     _visit(nodes[row][col]);
+
+    //     while (true)
+    //     {
+    //         current = queue.front();
+    //         queue.removeFront();
+
+    //         if (_visit(current))
+    //             return get_path(current);
+
+    //         // writeln(queue);
+    //     }
+
+    //     return null;
+    // }
+    
+    ulong[] find_path2()
     {
         Node current;
 
-        _visit(nodes[row][col]);
-        // writeln(queue);
+        _visit_starting_nodes();
 
         while (true)
         {
-            current = queue.front();
+            writeln(queue);
+            // sort!("a > b")(queue);
+
+            // current = queue[$ - 1];
+            // queue.popBack();
+
+            current = queue.front;
             queue.removeFront();
 
             if (_visit(current))
                 return get_path(current);
-
-            // writeln(queue);
         }
-
-        return null;
     }
 
     ulong[] get_path(Node node) const 
@@ -220,23 +263,23 @@ class Solver(ulong N)
         return path;
     }
 
-    ulong[][] find_all_paths()
-    {
-        ulong[][]   paths;
-        ulong[]     path;
+    // ulong[][] find_all_paths()
+    // {
+    //     ulong[][]   paths;
+    //     ulong[]     path;
 
-        foreach (n; 0 .. N)
-        {
-            path = find_path(n, 0);
-            paths ~= path;
+    //     foreach (n; 0 .. N)
+    //     {
+    //         path = find_path(n, 0);
+    //         paths ~= path;
 
-            // writeln(path);
+    //         // writeln(path);
             
-            _clear();
-        }
+    //         _clear();
+    //     }
 
-        return paths;
-    }
+    //     return paths;
+    // }
 }
 
 private ulong[] _min_path(ulong[][] paths...) pure
@@ -261,34 +304,35 @@ private ulong[] _min_path(ulong[][] paths...) pure
 
 void main()
 {
-    // string[] lines;
-    // Matrix!N matrix;
-    // Solver!N solver;
+    string[] lines;
+    Matrix!N matrix;
+    Solver!N solver;
 
-    // lines = read_file_by_line(FILE);
-    // matrix = new Matrix!N(lines);
-    // solver = new Solver!N(matrix);
-    // ulong[] path = solver.find_path(2, 0);
-    // writeln(path);
-    // ulong[][] paths = solver.find_all_paths();
-    // writeln(sum(_min_path(paths)));
+    lines = read_file_by_line(FILE);
+    matrix = new Matrix!N(lines);
+    solver = new Solver!N(matrix);
 
-    Matrix!5 m = new Matrix!5(TEST);
-    Solver!5 solver = new Solver!5(m);
-    // ulong[] path = solver.find_path(0, 0);
-    ulong[][] paths = solver.find_all_paths();
-    writeln(sum(_min_path(paths)));
+    // Matrix!5 m = new Matrix!5(TEST);
+    // Solver!5 solver = new Solver!5(m);
+    // ulong[] path = solver.find_path2();
+    // writeln(sum(path));
 
-    // ulong[][] paths = solver.find_all_paths();
-    // writeln(_min_path(paths));
+    writeln(matrix.values[0][1]);
 
-    // RedBlackTree!Node t = new RedBlackTree!Node();
-    // t.insert(new Node(1, 0, 0));
-    // t.insert(new Node(10, 0, 0));
-    // writeln(t);
-    // t.insert(new Node(10, 0, 0));
-    // writeln(t);
+    // Node[] nodes = [];
+    // Node[] nodes = [new Node(1, 2, 3), new Node(2, 0,0)];
+    // nodes[0].distance = 100;
+    // BinaryHeap!(Node[], "a > b") h = heapify!("a > b")(nodes);
+    // nodes ~= new Node(3, 0, 0);
+    // h.insert(new Node(3, 0, 0));
+    // h.removeFront();
 
-    // Node x = t.front();
+    // writeln(h);
+    // writeln(typeof(h).stringof);
+    // writeln(h.front);
+    // auto x = h.front;
     // writeln(x);
+    // h.removeFront();
+    // writeln(h);
+
 }

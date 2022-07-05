@@ -17,6 +17,7 @@ import std.file;
 private bool[] SIEVE = null;
 private ulong[] PRIMES = null;
 
+//this should be a struct
 class Rational(T)
 {
     T _top;

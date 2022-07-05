@@ -39,9 +39,16 @@ class Matrix(ulong N)
                 values[n][m] = to!ulong(strip(str_values[m]));
             }
         }
+    }
 
-        visited_from_above[0][] = true;
-        visited_from_below[N - 1][] = true;
+    private void _clear()
+    {
+        foreach (n; 0 .. N)
+        {
+            visited_from_above[n][] = false;
+            visited_from_below[n][] = false;
+            paths[n][] = null;
+        }
     }
 
     private bool _last_row_col(ulong row_col) const pure nothrow
@@ -84,33 +91,33 @@ class Matrix(ulong N)
     {
         ulong   min;
         ulong   current;
-        long    index;
+        ulong[] min_path;
 
         min = ulong.max;
-        foreach (n; 0 .. paths.length)
+        foreach (path; paths)
         {
-            current = sum(paths[n]);
+            current = sum(path);
             if (current > 0 && current < min)
             {
                 min = current;
-                index = n;
+                min_path = path;
             }
         }
 
-        return paths[index];
+        return min_path;
     }
 
     private ulong[] _get_up_path(ulong row, ulong col)
     {
-        if (visited_from_below[row][col])
-            return [];
-
         if (_first_row_col(row))
             return [];
         
         if (_first_row_col(col))
             return [];
-        
+
+        if (visited_from_below[row - 1][col])
+            return [];
+
         return values[row][col] ~ _find_path(row - 1, col, row);
     }
 
@@ -121,13 +128,13 @@ class Matrix(ulong N)
 
     private ulong[] _get_down_path(ulong row, ulong col)
     {
-        if (visited_from_above[row][col])
-            return [];
-
         if (_last_row_col(row))
             return [];
-        
+
         if (_first_row_col(col))
+            return [];
+
+        if (visited_from_above[row + 1][col])
             return [];
 
         return values[row][col] ~ _find_path(row + 1, col, row);
@@ -140,17 +147,19 @@ class Matrix(ulong N)
         ulong[] right_path;
         ulong[] path;
 
-        if (prev_row != ulong.max && prev_row < row)
-            visited_from_above[row][col] = true;
-        
-        if (prev_row != ulong.max && prev_row > row)
-            visited_from_below[row][col] = true;
+        // writeln("cell: ", values[row][col], " ", row, " ", col);
 
         if (_last_row_col(col))
             return [values[row][col]];
 
         if (paths[row][col] !is null)
             return paths[row][col];
+        
+        if ((prev_row != ulong.max) && (prev_row < row))
+            visited_from_above[row][col] = true;
+        
+        if ((prev_row != ulong.max) && (prev_row > row))
+            visited_from_below[row][col] = true;
         
         up_path = _get_up_path(row, col);
         right_path = _get_right_path(row, col);
@@ -159,8 +168,8 @@ class Matrix(ulong N)
         path = _min_path(up_path, right_path, down_path);   
         paths[row][col] = path;
 
-        writefln("cell: %s\nup: %s\nright: %s\ndown: %s\nmin: %s\n",
-                values[row][col], up_path, right_path, down_path, path);
+        // writefln("cell: %s\nup: %s\nright: %s\ndown: %s\nmin: %s\n",
+        //         values[row][col], up_path, right_path, down_path, path);
 
         return path;
     }
@@ -173,6 +182,7 @@ class Matrix(ulong N)
         {
             _paths[n] = _find_path(n, 0, ulong.max);
             // writeln(_paths[n]);
+            // _clear();
         }
 
         return _min_path(_paths);
@@ -181,12 +191,12 @@ class Matrix(ulong N)
 
 void main()
 {
-    // string[] lines;
-    // Matrix!N m;
+    string[] lines;
+    Matrix!N m;
 
-    // lines = read_file_by_line(FILE);
-    // m = new Matrix!N(lines);
-    Matrix!5 m = new Matrix!5(TEST);
+    lines = read_file_by_line(FILE);
+    m = new Matrix!N(lines);
+    // Matrix!5 m = new Matrix!5(TEST);
     // Matrix!2 m = new Matrix!2(MINI_TEST);
 
     auto path = m.find_path();
